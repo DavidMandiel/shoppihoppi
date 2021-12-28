@@ -298,8 +298,7 @@ router.delete('/delete-order/:orderId', authUser, async (req, res) => {
 		if (!order) {
 			return res.status(400).send({ error: 'No order found' });
 		}
-		console.log(order);
-		return res.send({ msg: `Order was deleted` });
+	return res.send({ msg: `Order was deleted` });
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
