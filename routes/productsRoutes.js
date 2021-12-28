@@ -6,9 +6,12 @@ const authUser = require('../middleware/authUser');
 // @Route GET api/products
 // @Desc get all products
 // @Access private
-router.get('/', authUser, async (req, res) => {
+// TODO - add auth user to route
+router.get('/', async (req, res) => {
 	try {
-		const productsList = await Product.find().populate('category');
+		const productsList = await Product.find()
+			.sort('product_name')
+			.populate('category');
 
 		if (!productsList) {
 			return res.status(400).send({ msg: 'No Products available' });

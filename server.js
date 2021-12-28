@@ -17,21 +17,19 @@ const categoriesRoutes = require('./routes/categoriesRoutes');
 app.use(express.json({ extended: false }));
 app.use(
 	cors({
-		origin: 'http://localhost:4200',
-		credentials: true,
+		origin: ['http://localhost:4200', 'https://maps.googleapis.com'],
 		methods: ['GET', 'POST', 'DELETE', 'PUT', 'UPDATE'],
+		credentials: true,
 	})
 );
 
 app.use(
 	session({
-		name: '',
+		name: 'shopipi',
 		secret: process.env.SESSION_SECRET,
-		resave: true,
-		saveUninitialized: true,
-		cookie: {
-			maxAge: 60 * 1000 * 60,
-		},
+		resave: false,
+		saveUninitialized: false,
+		cookie: {maxAge: 60 * 1000 * 60},
 	})
 );
 app.use(express.static('build'));

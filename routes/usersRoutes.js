@@ -44,34 +44,65 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
 	try {
 		const { email, password } = req.body;
-		let user = await User.findOne({ email: email });
-		// TODO -populate order
-		// .populate({
-		// 	path: 'orders',
-		// 	model: 'order',
-		// populate: [
-		// 	{
-		// 		model: 'product',
-		// 		path: 'products_list',
-		// 		populate: {
-		// 			path: 'category',
-		// 			model: 'category',
-		// 		},
-		// 	},
-		// ],
-		// });
+		let user = await User.findOne({ email: email }).populate({
+			path: 'orders',
+			model: 'order',
+			options: { sort: [{ date_created: -1 }] },
+			populate: {
+				model: 'product',
+				path: 'products_list.product',
+				populate: {
+					path: 'category',
+					model: 'category',
+				},
+			},
+		});
 
 		if (!user) {
-			return res.status(400).send({ error: 'Invalid Credentials' });
+			return res.status(401).send({ error: 'Invalid Credentials' });
 		}
-
 		const isMatch = await bcrypt.compare(password, user.password);
 		if (!isMatch) {
-			return res.status(401).json({ error: 'Invalid Credentials' });
+			return res.status(401).send({ error: 'Invalid Credentials' });
 		}
 		user.password = '';
 		req.session.user = user;
-		res.send({ msg: 'You are logged-in, Happy shopping', user: user });
+		res.send({
+			msg:
+				user.role === 'customer'
+					? 'You are logged-in, Happy shopping'
+					: 'You are logged as admin, have a nice work',
+			user: user,
+		});
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: 'Server Error' });
+	}
+});
+// @Route GET api/users/reload
+// @Desc reload user
+// @Access private
+router.get('/reload', authUser, async (req, res) => {
+	try {
+		let user = await User.findById(req.session.user._id).populate({
+			path: 'orders',
+			model: 'order',
+			options: { sort: [{ date_created: -1 }] },
+			populate: {
+				model: 'product',
+				path: 'products_list.product',
+				populate: {
+					path: 'category',
+					model: 'category',
+				},
+			},
+		});
+
+		if (!user) {
+			return res.status(401).send({ error: 'You need to loggin' });
+		}
+		req.session.user = user;
+		res.send(user);
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
@@ -82,8 +113,8 @@ router.post('/login', async (req, res) => {
 // @Desc log user
 // @Access private
 router.delete('/logout', authUser, (req, res) => {
-	req.session = null;
-	res.send(req.session);
+	req.session.destroy();
+	res.send({ msg: 'Thanks for shopping with us, you are logged out' });
 });
 // TODO - add update details route and avatar
 module.exports = router;

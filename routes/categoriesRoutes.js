@@ -7,7 +7,7 @@ const isAdmin = require('../middleware/isAdmin');
 // @Access private
 router.get('/', authUser, async (req, res) => {
 	try {
-		const categoriesList = await Category.find();
+		const categoriesList = await Category.find().sort('category_name');
 
 		if (!categoriesList) {
 			return res.status(400).send({ msg: 'No categories available' });

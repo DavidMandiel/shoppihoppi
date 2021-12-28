@@ -13,17 +13,15 @@ const ProductSchema = mongoose.Schema({
 		type: Number,
 		required: true,
 	},
-	quantity: {
+	stock: {
 		type: Number,
 		required: true,
 	},
 
-	category: [
-		{
-			type: mongoose.Types.ObjectId,
-			ref: 'category',
-		},
-	],
+	category: {
+		type: mongoose.Types.ObjectId,
+		ref: 'category',
+	},
 });
 
 module.exports = Product = mongoose.model('product', ProductSchema);
