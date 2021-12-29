@@ -10,7 +10,12 @@ const OrderSchema = mongoose.Schema({
 	],
 	date_created: { type: Date, default: Date.now() },
 	isOpen: { type: Boolean, default: true },
-	total_cost: { type: Number, default: 0 },
+	shipping_date: { type: Date },
+	shipping_address: {
+		city: { type: String },
+		street: { type: String },
+		number: { type: String },
+	},
 });
 
 module.exports = Order = mongoose.model('order', OrderSchema);

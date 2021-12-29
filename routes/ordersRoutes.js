@@ -19,6 +19,7 @@ router.get('/', isAdmin, async (req, res) => {
 		res.status(500).send({ error: 'Server Error' });
 	}
 });
+
 // @Route GET api/orders
 // @Desc get number of all orders
 // @Access private Private ONLY
@@ -152,9 +153,14 @@ router.put('/add-item/:orderId', authUser, async (req, res) => {
 				error: 'Product already in order, consider update the quantity',
 			});
 		}
+		await Product.findByIdAndUpdate(
+			{ _id: product },
+			{ $inc: { stock: -quantity } },
+			{ new: true }
+		);
 		order.products_list.push({ product, quantity });
 		order.save();
-		res.send({ msg: `item added to order ${order._id} ` });
+		res.send({ info: `product added to cart ` });
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
@@ -187,7 +193,7 @@ router.put('/remove-item/:orderId/:itemId', authUser, async (req, res) => {
 				order.products_list.splice(index, 1);
 				order.save();
 				res.send({
-					msg: `item removed from cart`,
+					msg: { info: `item removed from cart` },
 					order: order,
 				});
 			}
@@ -229,7 +235,7 @@ router.put('/update-item/up/:orderId/:itemId', authUser, async (req, res) => {
 					order.products_list[index].quantity += 1;
 					order.save();
 					res.send({
-						msg: `item quantity updated`,
+						msg: { info: `Quantity updated` },
 						order: order,
 					});
 				}
@@ -240,6 +246,7 @@ router.put('/update-item/up/:orderId/:itemId', authUser, async (req, res) => {
 		res.status(500).send({ error: 'Server Error' });
 	}
 });
+
 // @Route PUT api/orders/update-item/down/:orderId/:itemId
 // @Desc Update quantity down for item
 // @Access private
@@ -274,7 +281,7 @@ router.put('/update-item/down/:orderId/:itemId', authUser, async (req, res) => {
 					);
 					order.save();
 					res.send({
-						msg: `item quantity updated`,
+						msg: { info: `Quantity updated` },
 						order: order,
 					});
 				}
@@ -298,7 +305,47 @@ router.delete('/delete-order/:orderId', authUser, async (req, res) => {
 		if (!order) {
 			return res.status(400).send({ error: 'No order found' });
 		}
-	return res.send({ msg: `Order was deleted` });
+		return res.send({ msg: `Order was deleted` });
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: 'Server Error' });
+	}
+});
+
+// TODO- correct check out logic
+
+// @Route POST api/orders/submit-order/:orderId
+// @Desc Submit order by id
+// @Access private - Customer only
+router.post('/submit-order/:orderId', authUser, async (req, res) => {
+	const { shippingDate, shippingAddress } = req.body;
+	const ordersShippingDateArr = await Order.find()
+		.where('shipping_date')
+		.equals(shippingDate)
+		.where('isOpen')
+		.equals(false);
+	console.log(ordersShippingDateArr);
+	if (ordersShippingDateArr.length > 0) {
+		return res.status(400).send({
+			mag: {
+				error:
+					'Sorry this date is already full, please choose a different date',
+			},
+		});
+	}
+	try {
+		const order = await Order.findByIdAndUpdate(
+			{ _id: req.params.orderId },
+			{
+				isOpen: false,
+				shipping_date: shippingDate,
+				shipping_address: shippingAddress,
+			},
+			{ new: true }
+		);
+		return res.send({
+			info: `Order was sent to packaging. Delivery date: ${shippingDate} To Address ${shippingAddress}`,
+		});
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
