@@ -324,13 +324,9 @@ router.post('/submit-order/:orderId', authUser, async (req, res) => {
 		.equals(shippingDate)
 		.where('isOpen')
 		.equals(false);
-	console.log(ordersShippingDateArr);
-	if (ordersShippingDateArr.length > 0) {
+	if (ordersShippingDateArr.length > 2) {
 		return res.status(400).send({
-			mag: {
-				error:
-					'Sorry this date is already full, please choose a different date',
-			},
+			error: 'Sorry this date is already full, please choose a different date',
 		});
 	}
 	try {
@@ -344,7 +340,8 @@ router.post('/submit-order/:orderId', authUser, async (req, res) => {
 			{ new: true }
 		);
 		return res.send({
-			info: `Order was sent to packaging. Delivery date: ${shippingDate} To Address ${shippingAddress}`,
+			info: `Order was sent to packaging. Delivery date: ${shippingDate}
+			To Address: ${shippingAddress.city}, Street ${shippingAddress.street} No.${shippingAddress.number}`,
 		});
 	} catch (err) {
 		console.log(err);

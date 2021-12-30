@@ -113,8 +113,13 @@ router.get('/reload', authUser, async (req, res) => {
 // @Desc log user
 // @Access private
 router.delete('/logout', authUser, (req, res) => {
-	req.session.destroy();
-	res.send({ msg: 'Thanks for shopping with us, you are logged out' });
+	try {
+		req.session.destroy();
+		res.send({ msg: 'Thanks for shopping with us, you are logged out' });
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: 'Server Error' });
+	}
 });
 // TODO - add update details route and avatar
 module.exports = router;

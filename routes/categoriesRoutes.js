@@ -41,14 +41,21 @@ router.get('/:categoryId', authUser, async (req, res) => {
 // @Access private - ADMIN ONLY
 router.post('/add-category', isAdmin, async (req, res) => {
 	try {
-		const { category_name } = req.body;
+		let { category_name } = req.body;
+		// make category name start with capital letter
+		const nameLength = category_name.length;
+		const firstPart = category_name.substr(0, 1).toUpperCase();
+		const secondPart = category_name.substr(1, nameLength).toLowerCase();
+		category_name = firstPart + secondPart;
 
-		let newCategory = await Category.findOne({ category_name: category_name });
+		let newCategory = await Category.find().where({
+			category_name: category_name,
+		});
 
-		if (newCategory) {
+		if (newCategory.length > 0) {
 			return res
 				.status(400)
-				.send({ msg: 'Category already exist under the same name' });
+				.send({ error: 'Category already exist under the same name' });
 		}
 
 		newCategory = new Category({

@@ -1,11 +1,11 @@
 module.exports = isAdmin = (req, res, next) => {
 	if (!req.session.user) {
-		return res.status(401).send({ err: 'You need to login' });
+		return res.status(401).send({ error: 'You need to login' });
 	}
 	if (req.session.user.role !== 'admin') {
 		return res
 			.status(401)
-			.send({ err: 'Only admin can modify or add products' });
+			.send({ error: 'Only admin can modify or add products' });
 	}
 	next();
 };

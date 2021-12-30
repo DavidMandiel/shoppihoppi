@@ -6,7 +6,7 @@ const authUser = require('../middleware/authUser');
 // @Route GET api/products
 // @Desc get all products
 // @Access private
-// TODO - add auth user to route
+
 router.get('/', async (req, res) => {
 	try {
 		const productsList = await Product.find()
@@ -47,20 +47,27 @@ router.get('/:productId', authUser, async (req, res) => {
 // @Access private - ADMIN ONLY
 router.post('/add-product', isAdmin, async (req, res) => {
 	try {
-		const { product_name, img, price, quantity, category } = req.body;
-		let newProduct = await Product.findOne({ product_name: product_name });
-
-		if (newProduct) {
+		// make product name start with capital letter
+		const { img, price, stock, category } = req.body;
+		let { product_name } = req.body;
+		const nameLength = product_name.length;
+		const firstPart = product_name.substr(0, 1).toUpperCase();
+		const secondPart = product_name.substr(1, nameLength).toLowerCase();
+		product_name = firstPart + secondPart;
+		
+		let newProduct = await Product.find().where({ product_name: product_name });
+		console.log(newProduct.length);
+		if (newProduct.length > 0) {
 			return res
 				.status(400)
-				.send({ msg: 'Product already exist under the same name' });
+				.send({ error: 'Product already exist under the same name' });
 		}
 
 		newProduct = new Product({
 			product_name,
 			img,
 			price,
-			quantity,
+			stock,
 			category,
 		});
 
