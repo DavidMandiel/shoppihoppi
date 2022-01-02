@@ -54,7 +54,7 @@ router.post('/add-product', isAdmin, async (req, res) => {
 		const firstPart = product_name.substr(0, 1).toUpperCase();
 		const secondPart = product_name.substr(1, nameLength).toLowerCase();
 		product_name = firstPart + secondPart;
-		
+
 		let newProduct = await Product.find().where({ product_name: product_name });
 		console.log(newProduct.length);
 		if (newProduct.length > 0) {
@@ -99,7 +99,7 @@ router.delete('/delete-product/:productId', isAdmin, async (req, res) => {
 // @Desc update product by id
 // @Access private - ADMIN ONLY
 router.put('/update-product/:productId', isAdmin, async (req, res) => {
-	const { product_name, img, price, quantity, category } = req.body;
+	const { product_name, img, price, stock, category } = req.body;
 	try {
 		const product = await Product.findById(req.params.productId);
 		if (!product) {
@@ -114,15 +114,14 @@ router.put('/update-product/:productId', isAdmin, async (req, res) => {
 		if (price) {
 			product.price = price;
 		}
-		if (quantity) {
-			product.quantity = quantity;
+		if (stock) {
+			product.stock = stock;
 		}
 		if (category) {
-			product.category = category;
+			product.category = category._id;
 		}
-
 		await product.save();
-		res.send({ msg: `Product ${product.product_name} was updated` });
+		res.send({ msg: `Product was updated` });
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });

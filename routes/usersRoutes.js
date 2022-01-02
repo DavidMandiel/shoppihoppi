@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const User = require('../models/User');
 const authUser = require('../middleware/authUser');
+const isAdmin = require('../middleware/isAdmin');
 const bcrypt = require('bcryptjs');
 
 // @Route POST api/users/register-customer
@@ -79,6 +80,7 @@ router.post('/login', async (req, res) => {
 		res.status(500).send({ error: 'Server Error' });
 	}
 });
+
 // @Route GET api/users/reload
 // @Desc reload user
 // @Access private
@@ -103,6 +105,22 @@ router.get('/reload', authUser, async (req, res) => {
 		}
 		req.session.user = user;
 		res.send(user);
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: 'Server Error' });
+	}
+});
+
+// @Route GET api/users/all
+// @Desc get all user
+// @Access private - ADMIN only
+router.get('/all', isAdmin, async (req, res) => {
+	try {
+		let costumers = await User.find().where({ role: 'customer' });
+		if (!costumers) {
+			return res.status(401).send({ error: 'No costumers found' });
+		}
+		res.send(costumers);
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
