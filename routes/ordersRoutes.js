@@ -3,6 +3,7 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const isAdmin = require('../middleware/isAdmin');
+const fs = require('fs/promises');
 
 // @Route GET api/orders
 // @Desc get all orders
@@ -343,6 +344,31 @@ router.post('/submit-order/:orderId', authUser, async (req, res) => {
 			info: `Order was sent to packaging. Delivery date: ${shippingDate}
 			To Address: ${shippingAddress.city}, Street ${shippingAddress.street} No.${shippingAddress.number}`,
 		});
+	} catch (err) {
+		console.log(err);
+		res.status(500).send({ error: 'Server Error' });
+	}
+});
+
+// @Route POST api/orders/download-order/:orderId
+// @Desc Submit order by id
+// @Access private - Customer only
+router.post('/download-order/:orderId', authUser, async (req, res) => {
+	console.log(req.body);
+	try {
+	const newLog = {
+			date: new Date().toLocaleString('HE-il'),
+			url: req.url,
+			order: req.body,
+		};
+		try {
+			await fs.appendFile('invoice.txt', '\n' + JSON.stringify(newLog));
+			next();
+		} catch (err) {
+			console.log(err);
+		}
+
+		return res.send({ info: 'Invoice was downloaded to your computer' });
 	} catch (err) {
 		console.log(err);
 		res.status(500).send({ error: 'Server Error' });
